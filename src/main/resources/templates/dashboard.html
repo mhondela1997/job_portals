@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Job Portal Dashboard</title>
+<link rel="stylesheet" href="/css/userdashboard.css">
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<link rel="stylesheet"
+	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<style>
+/* Notification badge */
+.notification-bell {
+	position: relative;
+	margin-left: auto;
+	margin-right: 20px;
+	cursor: pointer;
+}
+
+#notification-count {
+	position: absolute;
+	top: -10px;
+	right: -10px;
+	background: red;
+	color: white;
+	border-radius: 50%;
+	padding: 2px 6px;
+	font-size: 12px;
+}
+
+.unseen {
+	font-weight: bold;
+}
+</style>
+</head>
+
+<body class="bg-light">
+	<div class="d-flex">
+		<div class="sidebar">
+			<img src="/images/job-logo.jpeg" alt="">
+			<ul>
+				<li><i class="fa fa-home text-success" aria-hidden="true"></i>
+					<a th:href="@{/dashboard}" class="text-success">home</a></li>
+				<li><i class="fa fa-file-alt text-success"></i> <a
+					th:href="@{/applications/apply}" class="text-success">Apply Now</a>
+				</li>
+
+				<li th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+					<i class="fa fa-users-cog text-primary"></i> <a
+					th:href="@{/admin/users}" class="text-primary">Manage Users</a>
+				</li>
+				<li th:if="${#authorization.expression('hasRole(''ADMIN'')')}"><i class="fa fa-file-alt text-success"></i> <a
+					th:href="@{/admin/applications/select-job}" class="text-success">View
+						Applicants</a></li>
+				<li><i class="fa fa-id-badge text-success"></i> <a
+					th:href="@{/admin/jobs}" class="text-success">job</a></li>
+				<li><i class="fa fa-sign-in text-secondary" aria-hidden="true"></i>
+					<a href="login" class="text-secondary">login</a></li>
+				<li><i class="fa fa-sign-out text-danger" aria-hidden="true"></i>
+					<a th:href="@{/logout}" class="text-danger">logout</a></li>
+			</ul>
+		</div>
+
+		<div class="right flex-grow-1">
+			<div
+				class="navbar d-flex align-items-center justify-content-between p-2 bg-white shadow-sm">
+				<div class="d-flex align-items-center">
+					<img src="/images/nembo.jpeg" alt="" class="me-3" height="60">
+					<div class="content text-center">
+						<h2>THE UNITED REPUBLIC OF TANZANIA</h2>
+						<h5>PRESIDENT'S OFFICE, REGIONAL ADMINISTRATION AND LOCAL
+							GOVERNMENT</h5>
+						<p>MWANZA CITY COUNCIL JOB PORTAL APPLICATION</p>
+					</div>
+					<img src="/images/mwanza2.jpeg" alt="" class="ms-3" height="60">
+					<div class="text-center ms-3">
+						<a th:href="@{/user/profile}"
+							class="text-decoration-none text-dark"> <img
+							th:src="@{'/uploads/' + ${user.photo}}" class="rounded-circle"
+							width="90" height="90" alt="User Photo">
+							<p th:text="${user.username}">User Name</p>
+						</a>
+					</div>
+				</div>
+
+				<!-- Notification Bell -->
+				<div class="notification-bell">
+					<i class="fa fa-bell fa-2x"></i> <span id="notification-count"
+						th:text="${notifications.?[!seen].size()}">0</span>
+					<button id="mark-all-seen"
+						class="btn btn-sm btn-outline-secondary ms-2">Mark all as
+						seen</button>
+				</div>
+			</div>
+
+			<div class="main mt-4">
+				<div class="row">
+					<div class="col-md-3 text-center">
+						<div class="card shadow-sm m-4 bg-primary text-white">
+							<h3 class="card-title">Users</h3>
+							<h1 class="card-text" th:text="${userCount}">0</h1>
+						</div>
+					</div>
+
+					<div class="col-md-3 text-center">
+						<div class="card shadow-sm m-4 bg-success text-white">
+							<h3 class="card-title">Available Jobs</h3>
+							<h1 class="card-text" th:text="${jobCount}">0</h1>
+						</div>
+					</div>
+
+					<div class="col-md-3 text-center">
+						<div class="card shadow-sm m-4 bg-secondary text-white">
+							<h3 class="card-title">Total Applicants</h3>
+							<h1 class="card-text" th:text="${applicantCount}">0</h1>
+						</div>
+					</div>
+				</div>
+
+				<!-- Notifications List -->
+				<div class="mt-4 p-3 bg-white shadow-sm rounded">
+					<h4>Notifications</h4>
+					<ul id="notification-list" class="list-group">
+						<li th:each="note : ${notifications}" th:text="${note.message}"
+							th:data-id="${note.id}"
+							th:classappend="${note.seen} ? '' : 'unseen'"
+							class="list-group-item"></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+        // Mark all notifications as seen
+        document.getElementById("mark-all-seen").addEventListener("click", () => {
+            fetch("/notifications/seen-all", { method: "POST" })
+            .then(() => {
+                document.querySelectorAll("#notification-list li").forEach(li => li.classList.remove("unseen"));
+                document.getElementById("notification-count").innerText = "0";
+            });
+        });
+
+        // Mark individual notifications as seen on click
+        document.querySelectorAll("#notification-list li").forEach(li => {
+            li.addEventListener("click", () => { 
+                const id = li.dataset.id;
+                fetch(`/notifications/${id}/seen`, { method: "POST" })
+                .then(() => {
+                    li.classList.remove("unseen");
+                    const count = document.querySelectorAll("#notification-list li.unseen").length;
+                    document.getElementById("notification-count").innerText = count;
+                });
+            });
+        });
+    </script>
+</body>
+</html>

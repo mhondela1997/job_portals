@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Applications</title>
+    <link rel="stylesheet" href="/css/styles.css"/>
+</head>
+<body>
+
+<!-- Notification messages -->
+<div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+<div th:if="${warningMessage}" class="alert alert-warning" th:text="${warningMessage}"></div>
+<div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+<!-- Your applications table -->
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="applicant : ${applications}">
+            <td th:text="${applicant.id}"></td>
+            <td th:text="${applicant.name}"></td>
+            <td th:text="${applicant.email}"></td>
+            <td th:text="${applicant.status}"></td>
+            <td>
+                <form th:action="@{/approveApplication}" method="post">
+                    <input type="hidden" th:name="applicantId" th:value="${applicant.id}"/>
+                    <button type="submit">Approve</button>
+                </form>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+</body>
+</html>
